@@ -4,7 +4,12 @@ using UnityEngine;
 
 public class Character : MonoBehaviour
 {
-    public int health;
+    [SerializeField] private int health;
+    public int Health
+    {
+        get { return health;  }
+        set { health = value; }
+    }
     [SerializeField] internal Weapon activeWeapon;
 
     public Weapon ActiveWeapon
@@ -19,13 +24,13 @@ public class Character : MonoBehaviour
     public void GetHit(int damage)
     {
         health -= damage;
-        Debug.Log(name + "'s current health: " + health);
+        //Debug.Log(name + "'s current health: " + health);
     }
 
     public void GetHit(Weapon weapon)
     {
         health -= weapon.GetDamage();
-        Debug.Log(name + " got hit my " + weapon.name);
-        Debug.Log(name + "'s current health: " + health);
+        /*Debug.Log(name + " got hit by " + weapon.name);
+        Debug.Log(name + "'s current health: " + health);*/
     }
 }

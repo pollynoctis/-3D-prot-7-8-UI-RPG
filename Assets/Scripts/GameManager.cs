@@ -7,14 +7,26 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
+    [Tooltip("Management")]
     public Player player;
+    public Enemy currentEnemy;
     public EnemyManager enemyManager;
-
-    private Enemy currentEnemy;
-    private float shieldBreakChance;
-
+    public int playerDamage, enemyDamage;
+    
+    [Tooltip("Texts")]
     [SerializeField] private TMP_Text playerNameText, playerHealthText, enemyNameText, enemyHealthText;
-    [SerializeField] private GameObject shieldButton;
+    
+    [Tooltip("Buttons")]
+    [SerializeField] private GameObject shieldButton, attackButton, healButton, loseScreen, winScreen, shakable;
+
+    [Tooltip("Audio")]
+    [SerializeField] private AudioClip yayClip;
+    [SerializeField] private AudioSource source;
+    
+    
+    
+    private float shieldBreakChance;
+    
 
     private void Start()
     {
@@ -32,7 +44,9 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            //do victory thing
+            source.PlayOneShot(yayClip);
+            winScreen.SetActive(true);
+            shakable.SetActive(false);
         }
     }
 
@@ -40,38 +54,33 @@ public class GameManager : MonoBehaviour
     {
         playerNameText.text = player.CharName;
         enemyNameText.text = currentEnemy != null ? currentEnemy.name : "Everyone is dead!";
-        playerHealthText.text = player.health.ToString();
-        enemyHealthText.text = currentEnemy != null ? currentEnemy.health.ToString() : "";
+        playerHealthText.text = player.Health.ToString();
+        enemyHealthText.text = currentEnemy != null ? currentEnemy.Health.ToString() : "";
     }
 
     public void DoRound()
     {
         if (currentEnemy == null) return;
 
-        int playerDamage = player.Attack();
+        playerDamage = player.Attack();
         currentEnemy.GetHit(playerDamage);
-
-        if (currentEnemy.health <= 0)
-        {
-            player.health = 100; 
-            GetNextEnemy();
-            return;
-        }
-
-        int enemyDamage = currentEnemy.Attack();
+        
+        enemyDamage = currentEnemy.Attack();
         player.GetHit(enemyDamage);
 
         UpdateText();
+        CheckEnemyHealth();
+        CheckPlayerHealth();
     }
     
     public void UseShield()
     {
         shieldBreakChance = Random.Range(0f, 1f);
-        print(shieldBreakChance);
+        //print(shieldBreakChance);
         if (shieldBreakChance > 0.3f)
         {
             int playerDamage = player.Attack();
-            currentEnemy.GetHit(playerDamage);
+            currentEnemy.GetHit(player.activeWeapon);
             int enemyDamage = currentEnemy.Attack();
             player.GetHit(enemyDamage/2);
             UpdateText();
@@ -79,14 +88,49 @@ public class GameManager : MonoBehaviour
         else
         {
             shieldButton.SetActive(false);
-            StartCoroutine(ShieldReload());
+            StartCoroutine(ButtonReload(20f, shieldButton));
             UpdateText();
         }
+        CheckEnemyHealth();
+        CheckPlayerHealth();
     }
-    private IEnumerator ShieldReload()
+    private IEnumerator ButtonReload(float loadingTime, GameObject toDisable)
     {
-        yield return new WaitForSeconds(20f);
-        shieldButton.SetActive(true);
+        yield return new WaitForSeconds(loadingTime);
+        toDisable.SetActive(true);
+    }
+
+    private void CheckEnemyHealth()
+    {
+        if (currentEnemy.Health <= 0)
+        {
+            player.Health = 100; 
+            GetNextEnemy();
+            return;
+        }
+    }
+
+    private void CheckPlayerHealth()
+    {
+        if (player.Health <= 0)
+        {
+            loseScreen.SetActive(true);
+        }
+    }
+
+    public void Heal()
+    {
+        if (player.Health<50)
+        {
+            player.Health += 15;
+        }
+        else
+        {
+            player.Health += 5;
+        }
+        healButton.SetActive(false);
+        UpdateText();
+        StartCoroutine(ButtonReload(15f, healButton));
     }
 }
 

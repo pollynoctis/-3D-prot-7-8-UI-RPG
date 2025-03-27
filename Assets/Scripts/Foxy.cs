@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class Foxy : Enemy
 {
-    // Start is called before the first frame update
-    void Start()
+    private float extraHitChance;
+    
+    public override int Attack()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        extraHitChance = Random.Range(0f, 1f);
+        if (extraHitChance<0.4f)
+        {
+            print("extra damage" );
+            return activeWeapon.GetDamage() + 13;
+        }
+        return activeWeapon.GetDamage();
     }
 }
